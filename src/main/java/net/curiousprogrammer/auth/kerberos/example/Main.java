@@ -85,8 +85,8 @@ public class Main {
                 .<AuthSchemeProvider>create()
                 .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true))
                 .build();
-
         CloseableHttpClient httpclient = HttpClients.custom()
+                // set our proxy - httpclient doesn't use ProxySelector
                 .setRoutePlanner(new DefaultProxyRoutePlanner(new HttpHost(PROXY_HOST, PROXY_PORT)))
                 .setDefaultAuthSchemeRegistry(authSchemeRegistry)
                 .setDefaultCredentialsProvider(credsProvider).build();
@@ -98,20 +98,21 @@ public class Main {
         System.setProperty("java.security.krb5.conf", "/etc/krb5.conf");
         System.setProperty("java.security.auth.login.config", "/etc/login.conf");
         System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+        //System.setProperty("sun.security.krb5.debug", "true");
+        System.setProperty("sun.security.jgss.debug", "true");
 
         // Set login credentials for CallbackHandler using custom security properties
         Security.setProperty("java.security.krb5.login.user", USER);
         Security.setProperty("java.security.krb5.login.password", PASSWORD);
 
-        enableDebugSystemProperties();
+        //enableDebugSystemProperties();
 
         // Setting default callback handler to avoid prompting for password on command line
         // check https://github.com/frohoff/jdk8u-dev-jdk/blob/master/src/share/classes/sun/security/jgss/GSSUtil.java#L241
         Security.setProperty("auth.login.defaultCallbackHandler", "net.curiousprogrammer.auth.kerberos.example.KerberosCallBackHandler");
 
-        // Perform loop (optionally) to validate proxy auth and check proxy req. count if wanted
         for (int i = 0; i < REQUEST_RETRIES; i++) {
-            callServer("https://ifconfig.me");
+            callServer("http://ifconfig.me");
             System.out.printf("Executing: %s", Time.from(Instant.now()));
             Thread.sleep(500);
         }

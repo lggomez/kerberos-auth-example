@@ -33,7 +33,7 @@ public class KerberosCallBackHandler implements CallbackHandler {
                 PasswordCallback pc = (PasswordCallback) callback;
                 pc.setPassword(password.toCharArray());
             } else {
-                throw new UnsupportedCallbackException(callback, "Unknown auth Callback");
+                throw new UnsupportedCallbackException(callback, "Unknown Callback");
             }
         }
     }
