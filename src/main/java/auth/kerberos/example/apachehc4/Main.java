@@ -1,5 +1,6 @@
-package net.curiousprogrammer.auth.kerberos.example;
+package auth.kerberos.example.apachehc4;
 
+import auth.kerberos.example.commons.security.KerberosCallBackHandler;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -44,9 +45,9 @@ import java.time.Instant;
  */
 public class Main {
     public static final int REQUEST_RETRIES = 1000;
-    public static final String USER = "user";
-    public static final String PASSWORD = "1234";
-    private static final String PROXY_HOST = "myproxy.com";
+    private static final String USER = "user";
+    private static final String PASSWORD = "pass";
+    private static final String PROXY_HOST = "proxy.com";
     private static final int PROXY_PORT = 3128;
 
     public static void callServer(String url) throws IOException {
@@ -109,7 +110,7 @@ public class Main {
 
         // Setting default callback handler to avoid prompting for password on command line
         // check https://github.com/frohoff/jdk8u-dev-jdk/blob/master/src/share/classes/sun/security/jgss/GSSUtil.java#L241
-        Security.setProperty("auth.login.defaultCallbackHandler", "net.curiousprogrammer.auth.kerberos.example.KerberosCallBackHandler");
+        Security.setProperty("auth.login.defaultCallbackHandler", "auth.kerberos.example.commons.security.KerberosCallBackHandler");
 
         for (int i = 0; i < REQUEST_RETRIES; i++) {
             callServer("http://ifconfig.me");

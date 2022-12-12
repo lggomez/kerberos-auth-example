@@ -1,4 +1,4 @@
-package net.curiousprogrammer.auth.kerberos.example;
+package auth.kerberos.example.commons.security;
 
 import javax.security.auth.callback.*;
 import java.security.Security;
@@ -33,7 +33,7 @@ public class KerberosCallBackHandler implements CallbackHandler {
                 PasswordCallback pc = (PasswordCallback) callback;
                 pc.setPassword(password.toCharArray());
             } else {
-                throw new UnsupportedCallbackException(callback, "Unknown Callback");
+                throw new UnsupportedCallbackException(callback, "Unknown auth Callback");
             }
         }
     }
