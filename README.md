@@ -1,7 +1,11 @@
 # Kerberos proxy authentication example
 
 This is the demonstration of authentication against kerberos-enabled proxy
-with Java's Krb5LoginModule.
+with Java's Krb5LoginModule, using JAAS and JGSS
+
+This project has 2 subprojects
+ * **apachehc4**: Single project using apachehc4 and seamlessly against its own internals JGSS wrapper. Not compatible with websocket services due to the client not offering the feature, though
+ * **okhttp3**: Single project using okhttp3 4.x. It has both HTTP and WebSocket compatible testing flows, and a custom authentication which is a JGSS wrapper itself to generate the SPNEGO tokens
 
 ## Prerequisites
 
@@ -21,31 +25,16 @@ for more details
 
 ## Configuration
 
-Update username and password in `KerberosCallBackHandler`
-and proxy host and/port in `KerberosAuthExample`.
+Required setup for KDC and JGSS/JAAS credentials - Have these in place and with a correct configuration:
+ * `/etc/krb5.conf`
+ * `/etc/login.conf`
+ * Proxy and principal/password: All project mains contain the constaints `USER`, `PASSWORD`, `PROXY_HOST` and `PROXY_PORT`. Also, change `HTTP_HOST` and `WS_HOST` if you want to test against custom services
+ 
+ The flag `RUN_HTTP_INSTEADOF_WS` constant determines wheter to run the HTTP client or the WS one, to test the desired flow. `REQUEST_RETRIES` determines the number of request retries on HTTP and messages on WS
 
-If appropriate, you can also update configuration in `login.conf` file.
 
 
 ## Running
 
-Just run `KerberosAuthExample` main method.
-If everything works, you should see content of example.com in console.
+Run the Main class corresponding to each project
 
-
-## proxy-vole
-
-There's a great [proxy-vole](https://github.com/MarkusBernhardt/proxy-vole) library
-which can be used for proxy configuration detection.
-
-If you want, you can use it to detect system's proxy settings and use
-system-wide proxy instead of hard-coded one in `KerberosAuthExample` - just
-use appropriate proxy selector to retrieve proper proxy settings
-
-```
-// for java HTTP stuff
-ProxySelector.setDefault(proxySearch.getProxySelector());
-
-// for HTTP client, you have to set proper proxy router planner
-...
-```
