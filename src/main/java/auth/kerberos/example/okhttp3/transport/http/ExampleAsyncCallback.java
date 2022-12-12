@@ -27,14 +27,16 @@ public class ExampleAsyncCallback implements Callback {
         try (ResponseBody responseBody = response.body()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
-            System.out.println("===================================================");
-            System.out.printf("RESPONSE CODE (%s): %s%n",
-                    call.request().url(),
-                    responseBody.toString(),
-                    response.code());
+            synchronized (this) {
+                System.out.println("===================================================");
+                System.out.printf("RESPONSE CODE (%s): %s%n",
+                        call.request().url(),
+                        responseBody.toString(),
+                        response.code());
 
-            System.out.println(responseBody.string());
-            System.out.println("===================================================");
+                System.out.println(responseBody.string());
+                System.out.println("===================================================");
+            }
 
             response.close();
             countDownLatch.countDown();

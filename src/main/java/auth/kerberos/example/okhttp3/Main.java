@@ -1,6 +1,7 @@
 package auth.kerberos.example.okhttp3;
 
 import auth.kerberos.example.okhttp3.transport.http.ExampleAsyncCallback;
+import auth.kerberos.example.okhttp3.transport.ws.ProxiedWebSocket;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -10,11 +11,17 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.security.Security;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
+    public static final String HTTP_HOST = "http://ifconfig.me/ip";
+    public static final String WS_HOST = "wss://ws.postman-echo.com/raw";
+
     private static OkHttpClient httpClient;
+    private static OkHttpClient wsClient;
 
     public static void main(String[] args) throws InterruptedException {
+        final boolean RUN_HTTP_INSTEADOF_WS = false;
         final int REQUEST_RETRIES = 1000;
         final String USER = "user";
         final String PASSWORD = "pass";
@@ -36,14 +43,25 @@ public class Main {
         //enableDebugSystemProperties();
 
         setupHTTPClient(PROXY_HOST, PROXY_PORT);
+        setupWSClient(PROXY_HOST, PROXY_PORT);
 
-        CountDownLatch countDownLatch = new CountDownLatch(REQUEST_RETRIES);
-        for (int i = 0; i <= REQUEST_RETRIES; i++) {
-            // Perform async call
-            newHTTPCall().enqueue(new ExampleAsyncCallback(countDownLatch));
+        if (RUN_HTTP_INSTEADOF_WS) {
+            System.out.println("********Performing HTTP requests");
+            CountDownLatch countDownLatch = new CountDownLatch(REQUEST_RETRIES);
+            for (int i = 0; i <= REQUEST_RETRIES; i++) {
+                // Perform async call
+                newHTTPCall().enqueue(new ExampleAsyncCallback(countDownLatch));
+            }
+            countDownLatch.await();
+        } else {
+            System.out.println("********Establishing WebSocket connection");
+            CountDownLatch countDownLatch = new CountDownLatch(REQUEST_RETRIES);
+            ProxiedWebSocket wsWrapper = new ProxiedWebSocket(wsClient, countDownLatch);
+            wsWrapper.run(WS_HOST);
+            countDownLatch.await();
+            wsWrapper.close();
         }
 
-        countDownLatch.await();
         System.out.println("********DONE");
     }
 
@@ -51,7 +69,7 @@ public class Main {
     private static Call newHTTPCall() {
         Request request = new Request.Builder()
                 .get()
-                .url("http://ifconfig.me/ip")
+                .url(HTTP_HOST)
                 .build();
         return httpClient.newCall(request);
     }
@@ -59,6 +77,16 @@ public class Main {
     @NotNull
     private static void setupHTTPClient(String proxyHost, int proxyPort) {
         httpClient = new OkHttpClient.Builder()
+                .proxy(new Proxy(Proxy.Type.HTTP, new
+                        InetSocketAddress(proxyHost, proxyPort)))
+                .proxyAuthenticator(new KerberosProxyAuthenticator(proxyHost))
+                .build();
+    }
+
+    @NotNull
+    private static void setupWSClient(String proxyHost, int proxyPort) {
+        wsClient = new OkHttpClient.Builder()
+                .readTimeout(0, TimeUnit.MILLISECONDS)
                 .proxy(new Proxy(Proxy.Type.HTTP, new
                         InetSocketAddress(proxyHost, proxyPort)))
                 .proxyAuthenticator(new KerberosProxyAuthenticator(proxyHost))
