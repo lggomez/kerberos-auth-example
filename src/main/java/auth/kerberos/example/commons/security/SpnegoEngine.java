@@ -137,20 +137,4 @@ public class SpnegoEngine {
 
         return gssContext.initSecContext(inputBuff, 0, inputBuff.length);
     }
-
-    public Configuration getLoginConfiguration() {
-        if (customLoginConfig != null && !customLoginConfig.isEmpty()) {
-            // Register default sun KerberosLoginModule as the login class, if no one specified by JAAS config
-            return new Configuration() {
-                @Override
-                public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-                    return new AppConfigurationEntry[]{
-                            new AppConfigurationEntry("com.sun.security.auth.module.Krb5LoginModule",
-                                    AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
-                                    customLoginConfig)};
-                }
-            };
-        }
-        return null;
-    }
 }
