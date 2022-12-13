@@ -43,8 +43,6 @@ import org.ietf.jgss.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.security.auth.login.AppConfigurationEntry;
-import javax.security.auth.login.Configuration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,55 +73,40 @@ public class SpnegoEngine {
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final String servicePrincipalName;
-    private final Map<String, String> customLoginConfig;
+    private final String authHost;
     private final Base64 base64codec;
 
-    public SpnegoEngine(final String servicePrincipalName,
-                        final Map<String, String> customLoginConfig) {
-        this.servicePrincipalName = servicePrincipalName;
-        this.customLoginConfig = customLoginConfig;
+    public SpnegoEngine(final String authHost) {
+        this.authHost = authHost;
         this.base64codec = new Base64(0);
     }
 
-    public static SpnegoEngine instance(final String servicePrincipalName,
-                                        final Map<String, String> customLoginConfig,
+    public static SpnegoEngine instance(final String authHost,
                                         final String loginContextName) {
         String key = "";
-        if (customLoginConfig != null && !customLoginConfig.isEmpty()) {
-            StringBuilder customLoginConfigKeyValues = new StringBuilder();
-            for (String loginConfigKey : customLoginConfig.keySet()) {
-                customLoginConfigKeyValues.append(loginConfigKey).append("=")
-                        .append(customLoginConfig.get(loginConfigKey));
-            }
-            key = customLoginConfigKeyValues.toString();
-        }
         if (loginContextName != null) {
             key += loginContextName;
         }
         if (!instances.containsKey(key)) {
-            instances.put(key, new SpnegoEngine(
-                    servicePrincipalName,
-                    customLoginConfig
-            ));
+            instances.put(key, new SpnegoEngine(authHost));
         }
         return instances.get(key);
     }
 
     public String generateToken() throws GSSException {
-        byte[] token = generateGSSToken(GSS_SPNEGO_MECH_OID, "HTTP", servicePrincipalName);
+        byte[] token = generateGSSToken(GSS_SPNEGO_MECH_OID, "HTTP", authHost);
         return new String(this.base64codec.encode(token));
     }
 
     protected byte[] generateGSSToken(
-            final Oid oid, final String serviceName, final String authServer) throws GSSException {
+            final Oid oid, final String serviceName, final String authHost) throws GSSException {
         byte[] inputBuff = new byte[]{};
         if (inputBuff == null) {
             inputBuff = new byte[0];
         }
         final GSSManager manager = GSSManager.getInstance();
 
-        String proxyServicePrincipal = serviceName + "@" + authServer;
+        String proxyServicePrincipal = serviceName + "@" + authHost;
         GSSName gssName = manager.createName(proxyServicePrincipal,
                 GSSName.NT_HOSTBASED_SERVICE);
 
@@ -133,7 +116,6 @@ public class SpnegoEngine {
                 null,
                 GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
-        //gssContext.requestCredDeleg(true);
 
         return gssContext.initSecContext(inputBuff, 0, inputBuff.length);
     }

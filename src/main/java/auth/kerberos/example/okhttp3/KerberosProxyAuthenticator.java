@@ -28,7 +28,6 @@ public class KerberosProxyAuthenticator implements Authenticator {
         try {
             token = SpnegoEngine.instance(
                     proxyHost,
-                    null, // To be populated by JAAS config
                     "spnego-okhttp-" + this.hashCode()).generateToken();
         } catch (GSSException e) {
             throw new RuntimeException(e);

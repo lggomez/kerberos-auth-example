@@ -21,18 +21,20 @@ public class Main {
     private static OkHttpClient wsClient;
 
     public static void main(String[] args) throws InterruptedException {
-        final boolean RUN_HTTP_INSTEADOF_WS = false;
+        final boolean RUN_HTTP_INSTEADOF_WS = true;
         final int REQUEST_RETRIES = 1000;
         final String USER = "user";
         final String PASSWORD = "pass";
         final String PROXY_HOST = "proxy.com";
         final int PROXY_PORT = 3128;
 
-        System.setProperty("java.security.krb5.conf", "/etc/krb5.conf");
-        System.setProperty("java.security.auth.login.config", "=/etc/login.conf");
         System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+        System.setProperty("java.security.krb5.conf", "/etc/krb5.conf");
+        //System.setProperty("java.security.auth.login.config", "=/etc/login.conf"); not needed,
+        // our Authenticator uses JGSS + defaultCallbackHandler directly
 
-        // Set login credentials for CallbackHandler using custom security properties
+        // Set login credentials for CallbackHandler using custom security properties.
+        // These security properties are non-standard and custom for our application, thus not colliding w/other auth feature flags
         Security.setProperty("java.security.krb5.login.user", USER);
         Security.setProperty("java.security.krb5.login.password", PASSWORD);
 
