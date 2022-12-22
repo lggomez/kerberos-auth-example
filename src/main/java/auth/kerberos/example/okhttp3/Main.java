@@ -1,5 +1,6 @@
 package auth.kerberos.example.okhttp3;
 
+import auth.kerberos.example.commons.security.KerberosCallBackHandler;
 import auth.kerberos.example.okhttp3.transport.http.ExampleAsyncCallback;
 import auth.kerberos.example.okhttp3.transport.ws.ProxiedWebSocket;
 import okhttp3.Call;
@@ -13,6 +14,21 @@ import java.security.Security;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * See "HttpClient set credentials for Kerberos authentication":
+ * https://stackoverflow.com/questions/21629132/httpclient-set-credentials-for-kerberos-authentication
+ * <p>
+ * The idea is to show how to authenticate against Kerberos-enabled proxy server with apache HTTP client.
+ * The tricky part is to make sure that provided credentials can be used to obtain Kerberos TGT ticket
+ * in case no ticket is already available in ticket OS cache.
+ * We want to avoid entering password manually via stdin and instead want to use pre-configured password
+ * <p>
+ * Notes:
+ * - You need to have a valid /etc/krb5.conf in place
+ * - Set proper username/password in USER and PASSWORD constants, also PROXY_HOST and PROXY_PORT
+ *
+ * @see KerberosCallBackHandler
+ */
 public class Main {
     public static final String HTTP_HOST = "http://ifconfig.me/ip";
     public static final String WS_HOST = "wss://ws.postman-echo.com/raw";
@@ -28,10 +44,11 @@ public class Main {
         final String PROXY_HOST = "proxy.com";
         final int PROXY_PORT = 3128;
 
-        System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
         System.setProperty("java.security.krb5.conf", "/etc/krb5.conf");
-        //System.setProperty("java.security.auth.login.config", "=/etc/login.conf"); not needed,
-        // our Authenticator uses JGSS + defaultCallbackHandler directly
+        // Bypass JAAS requirement and directly authenticate via CallbackHandler
+        // See https://docs.oracle.com/javase/7/docs/technotes/guides/security/jgss/tutorials/BasicClientServer.html
+        System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+
 
         // Set login credentials for CallbackHandler using custom security properties.
         // These security properties are non-standard and custom for our application, thus not colliding w/other auth feature flags

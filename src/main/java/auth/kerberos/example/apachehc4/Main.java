@@ -96,8 +96,10 @@ public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         System.setProperty("java.security.krb5.conf", "/etc/krb5.conf");
-        System.setProperty("java.security.auth.login.config", "/etc/login.conf");
+        // Bypass JAAS requirement and directly authenticate via CallbackHandler
+        // See https://docs.oracle.com/javase/7/docs/technotes/guides/security/jgss/tutorials/BasicClientServer.html
         System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+
         //System.setProperty("sun.security.krb5.debug", "true");
         System.setProperty("sun.security.jgss.debug", "true");
 
