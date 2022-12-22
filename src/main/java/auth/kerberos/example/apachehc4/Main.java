@@ -69,7 +69,7 @@ public class Main {
     }
 
     private static HttpClient getHttpClient() {
-        Credentials use_jaas_creds = new Credentials() {
+        Credentials noop_creds = new Credentials() {
             public String getPassword() {
                 return null;
             }
@@ -80,7 +80,7 @@ public class Main {
         };
 
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
+        credsProvider.setCredentials(new AuthScope(null, -1, null), noop_creds);
         Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder
                 .<AuthSchemeProvider>create()
                 .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true))
