@@ -38,7 +38,6 @@ import java.time.Instant;
  * <p>
  * Notes:
  * - You need to have a valid /etc/krb5.conf in place
- * - You need to have a valid JAAS configuration file at /etc/login.conf
  * - Set proper username/password in USER and PASSWORD constants, also PROXY_HOST and PROXY_PORT
  *
  * @see KerberosCallBackHandler
@@ -87,7 +86,7 @@ public class Main {
                 .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true))
                 .build();
         CloseableHttpClient httpclient = HttpClients.custom()
-                // set our proxy - httpclient doesn't use ProxySelector
+                // Set our proxy - httpclient doesn't use ProxySelector
                 .setRoutePlanner(new DefaultProxyRoutePlanner(new HttpHost(PROXY_HOST, PROXY_PORT)))
                 .setDefaultAuthSchemeRegistry(authSchemeRegistry)
                 .setDefaultCredentialsProvider(credsProvider).build();
